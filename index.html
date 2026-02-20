@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Telescopies - 3D Video Gallery</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      
+      #loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: Arial, sans-serif;
+        color: white;
+        font-size: 18px;
+        z-index: 100;
+      }
+      
+      #teleportLinks {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        color: lightgrey;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 15px;
+        border-radius: 8px;
+      }
+      
+      #teleportLinks h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: white;
+        font-weight: normal;
+      }
+      
+      #teleportLinks a {
+        display: block;
+        margin: 5px 0;
+        text-decoration: none;
+        color: skyblue;
+        transition: color 0.2s;
+      }
+      
+      #teleportLinks a:hover {
+        color: white;
+      }
+      
+      #teleportLinks a.active {
+        color: #ff5f15;
+        font-weight: bold;
+      }
+      
+      #instructions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 10;
+      }
+      
+      #teleportLinks::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      #teleportLinks::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      
+      #teleportLinks::-webkit-scrollbar-thumb {
+        background: rgba(135, 206, 235, 0.5);
+        border-radius: 3px;
+      }
+      
+      #teleportLinks::-webkit-scrollbar-thumb:hover {
+        background: rgba(135, 206, 235, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">Loading videos...</div>
+    
+    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000;">
+      <div style="text-align: center; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">
+        <p style="font-size: 24px; margin-bottom: 10px; font-weight: 300;">Telescope Tondos, 2021</p>
+        <p style="font-size: 18px; margin-bottom: 40px; font-weight: 300;">Web experience</p>
+        <a href="#" id="enterButton" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #cccccc; text-decoration: underline; cursor: pointer;">
+          click to enter
+        </a>
+      </div>
+      <div style="position: fixed; bottom: 20px; right: 20px;">
+        <a href="#" onclick="openAboutFromEnter(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
+          About
+        </a>
+      </div>
+    </div>
+    
+    <div id="teleportLinks" style="display: none;">
+      <a href="#" onclick="openAbout(); return false;" style="display: block; margin-bottom: 10px; font-size: 12px; text-decoration: underline; font-weight: normal;">About</a>
+      <a href="#" onclick="teleportToVideo(0); setActiveLink(this); return false;">Home</a>
+    </div>
+    
+    <div id="instructions">
+      WASD/Arrows to move • Mouse to look • Click videos in sidebar
+    </div>
+    
+    <div id="aboutLink" style="position: fixed; bottom: 20px; right: 20px; z-index: 10;">
+      <a href="#" onclick="openAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
+        About
+      </a>
+    </div>
+    
+    <div id="aboutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto;">
+      <div style="max-width: 700px; margin: 60px auto; padding: 40px; color: #cccccc; font-family: Georgia, 'Times New Roman', serif; line-height: 1.8;">
+        <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 300;">Telescope Tondos, 2021</h2>
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Telescope Tondos (2021) is an ongoing project that consists of a series of live images taken using my iPhone and a telescope from the window of an apartment in Brooklyn, NY, where I temporarily lived because of COVID. These moving vistas capture the ever-changing sky, urban street scenes, and views into the private residences of my neighbors. They are a response to dislocation and social distancing. Each composition frames a potential story about a community or place I am not interacting with. The moving imagery is otherworldly as the telescope flattens and flips the space. This body of work asks: in the time of COVID – where everything is mediated by screens – can digital voyeurism stand in for intimacy and community?
+        </p>
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Over time this project has taken the form of an instagram feed, videos, posters, and this website archive.
+        </p>
+        <p style="font-size: 16px; margin-bottom: 30px;">
+          <a href="https://sofie.space/telescope-tondos" target="_blank" style="color: #cccccc; text-decoration: underline;">https://sofie.space/telescope-tondos</a>
+        </p>
+        <a href="#" onclick="closeAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 14px; color: #cccccc; text-decoration: underline; cursor: pointer;">
+          Close
+        </a>
+      </div>
+    </div>
+
+    <a-scene>
+      <a-sky color="black"></a-sky>
+      
+      <a-assets id="videoAssets"></a-assets>
+
+      <a-entity id="videoContainer"></a-entity>
+
+      <a-entity id="rig" position="0 0 0">
+        <a-camera id="camera" position="0 0 0" look-controls wasd-controls>
+        </a-camera>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const SUPABASE_URL = 'https://pqkqsgzbntuigrrcwvdb.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxa3FzZ3pibnR1aWdycmN3dmRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzY0MTUsImV4cCI6MjA4NzAxMjQxNX0.ipcvc2ek_EWd7UPUioix9tWYzEivSobWZYi1yjGfFJ4';
+      
+      const SPACE_CONFIG = {
+        x: { min: -15, max: 15 },
+        y: 0,
+        z: { min: -25, max: -2 },
+        minDistance: 3,
+        videoWidth: 1.5,
+        videoHeight: 2,
+        proximityDistance: 1
+      };
+
+      let supabaseClient = null;
+      let videos = [];
+      let videoPositions = [{ x: 0, y: 0, z: 0 }];
+      
+      if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      function generateRandomPosition(existingPositions) {
+        const maxAttempts = 100;
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+          const position = {
+            x: Math.random() * (SPACE_CONFIG.x.max - SPACE_CONFIG.x.min) + SPACE_CONFIG.x.min,
+            y: SPACE_CONFIG.y,
+            z: Math.random() * (SPACE_CONFIG.z.max - SPACE_CONFIG.z.min) + SPACE_CONFIG.z.min
+          };
+          
+          let isValid = true;
+          for (const existing of existingPositions) {
+            const distance = Math.sqrt(
+              Math.pow(position.x - existing.x, 2) +
+              Math.pow(position.z - existing.z, 2)
+            );
+            
+            if (distance < SPACE_CONFIG.minDistance) {
+              isValid = false;
+              break;
+            }
+          }
+          
+          if (isValid) {
+            return position;
+          }
+          
+          attempts++;
+        }
+        
+        return {
+          x: Math.random() * (SPACE_CONFIG.x.max - SPACE_CONFIG.x.min) + SPACE_CONFIG.x.min,
+          y: SPACE_CONFIG.y,
+          z: Math.random() * (SPACE_CONFIG.z.max - SPACE_CONFIG.z.min) + SPACE_CONFIG.z.min
+        };
+      }
+      
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const year = date.getFullYear().toString().slice(-2);
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+        return `${month}.${day}.${year} ${hours}:${minutes}`;
+      }
+
+      async function fetchVideosFromSupabase() {
+        if (!supabaseClient) {
+          console.log('Supabase not configured, using fallback videos');
+          return null;
+        }
+        
+        try {
+          const { data, error } = await supabaseClient
+            .from('videos')
+            .select('*')
+            .order('created_at', { ascending: true });
+          
+          if (error) throw error;
+          
+          return data;
+        } catch (error) {
+          console.error('Error fetching videos:', error);
+          return null;
+        }
+      }
+
+      function createVideoElements(videosData) {
+        const assets = document.querySelector('#videoAssets');
+        const container = document.querySelector('#videoContainer');
+        const positions = [videoPositions[0]];
+        
+        let videosLoaded = 0;
+        const totalVideos = videosData.length;
+        
+        videosData.forEach((video, index) => {
+          const videoAsset = document.createElement('video');
+          videoAsset.setAttribute('id', `video${index}`);
+          videoAsset.setAttribute('src', video.video_url);
+          videoAsset.setAttribute('loop', 'true');
+          videoAsset.setAttribute('muted', 'true');
+          videoAsset.setAttribute('playsinline', '');
+          videoAsset.setAttribute('crossorigin', 'anonymous');
+          videoAsset.setAttribute('preload', 'metadata');
+          
+          const position = generateRandomPosition(positions);
+          positions.push(position);
+          
+          // Wait for video to have data before adding to scene
+          videoAsset.addEventListener('loadedmetadata', () => {
+            console.log(`Video ${index} ready`);
+            videosLoaded++;
+            
+            // Update loading message
+            document.querySelector('#loading').textContent = `Loading videos... ${videosLoaded}/${totalVideos}`;
+            
+            // Now create the A-Frame entity
+            const videoEntity = document.createElement('a-video');
+            videoEntity.setAttribute('src', `#video${index}`);
+            videoEntity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+            videoEntity.setAttribute('height', SPACE_CONFIG.videoHeight);
+            videoEntity.setAttribute('width', SPACE_CONFIG.videoWidth);
+            videoEntity.setAttribute('proximity-autoplay', 'true');
+            container.appendChild(videoEntity);
+            
+            // Hide loading when all videos are ready
+            if (videosLoaded === totalVideos) {
+              setTimeout(() => {
+                document.querySelector('#loading').style.display = 'none';
+                console.log('All videos loaded! Click "Enter" to start.');
+              }, 500);
+            }
+          });
+          
+          assets.appendChild(videoAsset);
+          
+          const link = document.createElement('a');
+          link.href = '#';
+          link.textContent = video.title || formatDate(video.created_at);
+          link.onclick = function() {
+            teleportToVideo(index + 1);
+            setActiveLink(this);
+            return false;
+          };
+          document.querySelector('#teleportLinks').appendChild(link);
+        });
+        
+        videoPositions = positions;
+      }
+
+      function useFallbackVideos() {
+        const fallbackVideos = [
+          { video_url: 'https://cdn.glitch.global/f7bd5c1a-d3a7-4de0-a789-9253fdc13ea2/TT-sunset2.mp4?v=1731377052892', created_at: '2021-02-23T17:23:00', title: '2.23.21 17:23' },
+          { video_url: 'https://cdn.glitch.global/f7bd5c1a-d3a7-4de0-a789-9253fdc13ea2/TT-smoke.mp4?v=1731377067771', created_at: '2021-02-17T16:30:00', title: '2.17.21 16:30' }
+        ];
+        
+        createVideoElements(fallbackVideos);
+      }
+
+      function teleportToVideo(index) {
+        const rig = document.querySelector('#rig');
+        const camera = document.querySelector('#camera');
+        const position = videoPositions[index];
+        
+        if (!position) return;
+        
+        rig.setAttribute('position', `${position.x} 0 ${position.z + 0.5}`);
+        camera.setAttribute('position', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+      }
+      
+      function setActiveLink(link) {
+        const links = document.querySelectorAll('#teleportLinks a');
+        links.forEach((l) => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+      
+      function openAbout() {
+        document.getElementById('aboutModal').style.display = 'block';
+      }
+      
+      function openAboutFromEnter() {
+        document.getElementById('aboutModal').style.display = 'block';
+      }
+      
+      function closeAbout() {
+        document.getElementById('aboutModal').style.display = 'none';
+      }
+
+      AFRAME.registerComponent('proximity-autoplay', {
+        schema: { 
+          distance: { type: 'number', default: 1 } 
+        },
+        
+        init: function () {
+          this.camera = document.querySelector('#camera');
+          this.videoEl = document.querySelector(this.el.getAttribute('src'));
+          console.log('Proximity component init for:', this.el.getAttribute('src'), 'videoEl:', this.videoEl);
+        },
+        
+        tick: function () {
+          if (!this.camera || !this.videoEl) return;
+          
+          // Get camera's world position (actual position in scene after movement)
+          const cameraWorldPos = new THREE.Vector3();
+          this.camera.object3D.getWorldPosition(cameraWorldPos);
+          
+          const videoPos = this.el.object3D.position;
+          const distance = cameraWorldPos.distanceTo(videoPos);
+          
+          if (distance < this.data.distance) {
+            console.log('CLOSE to video! Distance:', distance.toFixed(2), 'Paused?', this.videoEl.paused);
+            if (this.videoEl.paused) {
+              this.videoEl.play().then(() => {
+                console.log('✓ Playing!');
+              }).catch(e => {
+                console.log('✗ Play failed:', e.message);
+              });
+            }
+            if (this.videoEl.muted) {
+              this.videoEl.muted = false;
+            }
+          } else {
+            if (!this.videoEl.paused) {
+              this.videoEl.pause();
+              console.log('Paused at distance:', distance.toFixed(2));
+            }
+            if (!this.videoEl.muted) {
+              this.videoEl.muted = true;
+            }
+          }
+        }
+      });
+
+      async function init() {
+        document.querySelector('#loading').textContent = 'Loading videos...';
+        
+        const supabaseVideos = await fetchVideosFromSupabase();
+        
+        if (supabaseVideos && supabaseVideos.length > 0) {
+          console.log(`Loaded ${supabaseVideos.length} videos from Supabase`);
+          createVideoElements(supabaseVideos);
+        } else {
+          console.log('Using fallback videos');
+          useFallbackVideos();
+        }
+        
+        const firstLink = document.querySelector('#teleportLinks a');
+        if (firstLink) {
+          firstLink.classList.add('active');
+        }
+      }
+      
+      // Enter button handler
+      document.addEventListener('DOMContentLoaded', () => {
+        const enterButton = document.getElementById('enterButton');
+        const enterScreen = document.getElementById('enterScreen');
+        const teleportLinks = document.getElementById('teleportLinks');
+        
+        enterButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Hide enter screen
+          enterScreen.style.display = 'none';
+          
+          // Show teleport links
+          teleportLinks.style.display = 'block';
+          
+          // Try to play all videos once (muted) to enable autoplay
+          const videos = document.querySelectorAll('video');
+          videos.forEach(video => {
+            video.play().then(() => {
+              video.pause();
+              video.currentTime = 0;
+            }).catch(e => console.log('Preplay failed:', e));
+          });
+          
+          console.log('Entered gallery');
+        });
+      });
+      
+      if (typeof AFRAME === 'undefined') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            const scene = document.querySelector('a-scene');
+            if (scene.hasLoaded) {
+              init();
+            } else {
+              scene.addEventListener('loaded', init);
+            }
+          }, 100);
+        });
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          const scene = document.querySelector('a-scene');
+          if (scene.hasLoaded) {
+            init();
+          } else {
+            scene.addEventListener('loaded', init);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
