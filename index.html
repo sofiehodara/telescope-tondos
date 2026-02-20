@@ -159,7 +159,7 @@
         minDistance: 3,
         videoWidth: 1.5,
         videoHeight: 2,
-        proximityDistance: 1
+        proximityDistance: 1.5
       };
 
       let supabaseClient = null;
@@ -344,7 +344,7 @@
 
       AFRAME.registerComponent('proximity-autoplay', {
         schema: { 
-          distance: { type: 'number', default: 1 } 
+          distance: { type: 'number', default: 1.5 } 
         },
         
         init: function () {
