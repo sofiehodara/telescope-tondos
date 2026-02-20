@@ -91,11 +91,6 @@
       #teleportLinks::-webkit-scrollbar-thumb:hover {
         background: rgba(135, 206, 235, 0.8);
       }
-      
-      /* Hide A-Frame VR modal */
-      .a-dialog {
-        display: none !important;
-      }
     </style>
   </head>
   <body>
@@ -109,11 +104,7 @@
           click to enter
         </a>
       </div>
-      <div style="position: fixed; bottom: 20px; right: 20px;">
-        <a href="#" onclick="openAboutFromEnter(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
-          About
-        </a>
-      </div>
+      
     </div>
     
     <div id="teleportLinks" style="display: none;">
@@ -123,6 +114,12 @@
     
     <div id="instructions">
       WASD/Arrows to move • Mouse to look • Click videos in sidebar
+    </div>
+    
+    <div id="aboutLink" style="position: fixed; bottom: 20px; right: 20px; z-index: 10;">
+      <a href="#" onclick="openAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
+        About
+      </a>
     </div>
     
     <div id="aboutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto;">
@@ -143,7 +140,7 @@
       </div>
     </div>
 
-    <a-scene vr-mode-ui="enabled: false">
+    <a-scene>
       <a-sky color="black"></a-sky>
       
       <a-assets id="videoAssets"></a-assets>
