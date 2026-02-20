@@ -91,6 +91,11 @@
       #teleportLinks::-webkit-scrollbar-thumb:hover {
         background: rgba(135, 206, 235, 0.8);
       }
+      
+      /* Hide A-Frame VR modal */
+      .a-dialog {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -120,12 +125,6 @@
       WASD/Arrows to move • Mouse to look • Click videos in sidebar
     </div>
     
-    <div id="aboutLink" style="position: fixed; bottom: 20px; right: 20px; z-index: 10;">
-      <a href="#" onclick="openAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
-        About
-      </a>
-    </div>
-    
     <div id="aboutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto;">
       <div style="max-width: 700px; margin: 60px auto; padding: 40px; color: #cccccc; font-family: Georgia, 'Times New Roman', serif; line-height: 1.8;">
         <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 300;">Telescope Tondos, 2021</h2>
@@ -144,7 +143,7 @@
       </div>
     </div>
 
-    <a-scene>
+    <a-scene vr-mode-ui="enabled: false">
       <a-sky color="black"></a-sky>
       
       <a-assets id="videoAssets"></a-assets>
