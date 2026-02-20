@@ -229,7 +229,7 @@
           const { data, error } = await supabaseClient
             .from('videos')
             .select('*')
-            .order('created_at', { ascending: true });
+            .order('date_recorded', { ascending: true });
           
           if (error) throw error;
           
