@@ -151,11 +151,7 @@
           click to enter
         </a>
       </div>
-      <div style="position: fixed; bottom: 20px; right: 20px;">
-        <a href="#" onclick="openAboutFromEnter(); return false;" style="font-family: Arial, sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-decoration: underline; cursor: pointer;">
-          About
-        </a>
-      </div>
+      
     </div>
     
     <div id="videoTimestamp"></div>
@@ -470,11 +466,10 @@
           }
         });
         
-        ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
-        ctx.stroke();
+      ctx.fillStyle = '#ffff00';
+ctx.beginPath();
+ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+ctx.fill();
         
         ctx.restore();
         
