@@ -369,21 +369,38 @@
         document.querySelector('#videoTimestamp').classList.remove('visible');
       }
       
-      function toggleIndex() {
-        document.querySelector('#indexList').classList.toggle('expanded');
-      }
-      
+     function toggleIndex() {
+  const indexList = document.querySelector('#indexList');
+  const indexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+  
+  indexList.classList.toggle('expanded');
+  
+  if (indexList.classList.contains('expanded')) {
+    indexLink.classList.add('active');
+  } else {
+    indexLink.classList.remove('active');
+  }
+}
       function openMap() {
-        const modal = document.getElementById('mapModal');
-        const canvas = document.getElementById('mapCanvas');
-        
-        modal.style.display = 'block';
-        canvas.width = 140;
-        canvas.height = 140;
-        
-        drawMap(canvas);
-        mapUpdateInterval = setInterval(() => drawMap(canvas), 100);
-      }
+  const modal = document.getElementById('mapModal');
+  const canvas = document.getElementById('mapCanvas');
+  const mapLink = document.querySelector('#topNav a[onclick*="openMap"]');
+  
+  // Toggle map
+  if (modal.style.display === 'block') {
+    closeMap();
+    if (mapLink) mapLink.classList.remove('active');
+  } else {
+    modal.style.display = 'block';
+    if (mapLink) mapLink.classList.add('active');
+    
+    canvas.width = 180;
+    canvas.height = 180;
+    
+    drawMap(canvas);
+    mapUpdateInterval = setInterval(() => drawMap(canvas), 100);
+  }
+}
       
       function closeMap() {
         document.getElementById('mapModal').style.display = 'none';
@@ -401,8 +418,7 @@
         const centerY = height / 2;
         const radius = width / 2;
         
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, width, height);
+   
         
         ctx.save();
         ctx.beginPath();
