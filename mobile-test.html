@@ -99,7 +99,7 @@
         bottom: 20px;
         right: 20px;
         z-index: 10;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.3);
         border-radius: 50%;
         padding: 0;
         overflow: hidden;
@@ -169,7 +169,6 @@
     
     <div id="mapModal">
       <canvas id="mapCanvas"></canvas>
-      <a href="#" id="mapClose" onclick="closeMap(); return false;">close</a>
     </div>
     
     <div id="aboutModal">
@@ -187,6 +186,7 @@
         <a href="#" onclick="closeAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 14px; color: #cccccc; text-decoration: underline; cursor: pointer;">
           Close
         </a>
+        
       </div>
     </div>
 
@@ -378,8 +378,8 @@
         const canvas = document.getElementById('mapCanvas');
         
         modal.style.display = 'block';
-        canvas.width = 200;
-        canvas.height = 200;
+        canvas.width = 140;
+        canvas.height = 140;
         
         drawMap(canvas);
         mapUpdateInterval = setInterval(() => drawMap(canvas), 100);
@@ -413,7 +413,7 @@
         if (!rig) return;
         
         const rigPos = rig.object3D.position;
-        const viewRadius = 12;
+        const viewRadius = 9;
         const scale = radius / viewRadius;
         
         function worldToCanvas(x, z) {
