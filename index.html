@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telescope Tondos, 2021</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='black' stroke='#4CC9F0' stroke-width='2'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='black' stroke='%234CC9F0' stroke-width='2'/></svg>">
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -87,6 +87,7 @@
         font-size: 11px;
         margin: 3px 0;
         color: rgba(255, 255, 255, 0.6);
+        text-decoration: underline;
       }
       
       #indexList a.active {
@@ -486,13 +487,13 @@
           );
           if (distFromCenter > radius) return;
           
-          ctx.fillStyle = '#888888';
+          ctx.fillStyle = '#cccccc';
           ctx.beginPath();
           ctx.arc(canvasPos.x, canvasPos.y, 3, 0, Math.PI * 2);
           ctx.fill();
         });
         
-        // Draw current position
+        // Draw current position (bright cyan)
         ctx.fillStyle = '#4CC9F0';
         ctx.beginPath();
         ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
@@ -531,40 +532,22 @@
       }
 
       AFRAME.registerComponent('proximity-autoplay', {
-        schema: { 
-          distance: { type: 'number', default: 1 },
-          stickyDistance: { type: 'number', default: 0.7 }
-        },
+        schema: { distance: { type: 'number', default: 1 } },
         
         init: function () {
           this.camera = document.querySelector('#camera');
-          this.rig = document.querySelector('#rig');
           this.videoEl = document.querySelector(this.el.getAttribute('src'));
           this.videoIndex = parseInt(this.el.getAttribute('data-video-index'));
-          this.originalSpeed = 0.15;
         },
         
         tick: function () {
-          if (!this.camera || !this.videoEl || !this.rig) return;
+          if (!this.camera || !this.videoEl) return;
           
           const cameraWorldPos = new THREE.Vector3();
           this.camera.object3D.getWorldPosition(cameraWorldPos);
           
           const videoPos = this.el.object3D.position;
           const distance = cameraWorldPos.distanceTo(videoPos);
-          
-          // Soft sticky lock - slow movement when very close
-          const movementControls = this.rig.components['movement-controls'];
-          if (distance < this.schema.stickyDistance.default) {
-            if (movementControls) {
-              movementControls.data.speed = this.originalSpeed * 0.15;
-            }
-      
-          } else {
-            if (movementControls) {
-              movementControls.data.speed = this.originalSpeed;
-            }
-          }
           
           if (distance < this.data.distance) {
             if (this.videoEl.paused) {
