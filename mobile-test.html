@@ -357,9 +357,18 @@ indexList.appendChild(indexLink);
       }
       
       function goHome() {
-        teleportToVideo(0);
-        hideTimestamp();
-      }
+  const rig = document.querySelector('#rig');
+  const camera = document.querySelector('#camera');
+  
+  // Completely reset everything
+  rig.setAttribute('position', { x: 0, y: 0, z: 0 });
+  rig.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+  camera.setAttribute('position', { x: 0, y: 0, z: 0 });
+  camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+  
+  hideTimestamp();
+}
+
       
       function randomTeleport() {
         const randomIndex = Math.floor(Math.random() * videoMetadata.length) + 1;
