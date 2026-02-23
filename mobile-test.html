@@ -224,6 +224,8 @@
       let videoPositions = [{ x: 0, y: 0, z: 0 }];
       let videoMetadata = [];
       let mapUpdateInterval = null;
+      let pathTrail = [];
+
 
       function generateRandomPosition(existingPositions) {
         const maxAttempts = 100;
@@ -406,6 +408,19 @@ indexLink.onclick = function() {
     indexLink.classList.remove('active');
   }
 }
+
+function updateTrail() {
+  const rig = document.querySelector('#rig');
+  if (!rig) return;
+  
+  const rigPos = rig.object3D.position;
+  pathTrail.push({ x: rigPos.x, z: rigPos.z, age: 0 });
+  
+  // Age existing points and remove old ones
+  pathTrail = pathTrail.map(p => ({ ...p, age: p.age + 1 }))
+                       .filter(p => p.age < 50); // Keep last 5 seconds
+}
+
       function openMap() {
   const modal = document.getElementById('mapModal');
   const canvas = document.getElementById('mapCanvas');
@@ -422,8 +437,12 @@ indexLink.onclick = function() {
     canvas.width = 180;
     canvas.height = 180;
     
-    drawMap(canvas);
-    mapUpdateInterval = setInterval(() => drawMap(canvas), 100);
+    pathTrail = []; // Reset trail when opening map
+drawMap(canvas);
+mapUpdateInterval = setInterval(() => {
+  updateTrail();
+  drawMap(canvas);
+}, 100);
   }
 }
       
@@ -471,31 +490,24 @@ indexLink.onclick = function() {
         ctx.font = '8px Arial';
         ctx.textAlign = 'left';
         
-        videoPositions.forEach((pos, index) => {
-          if (index === 0) return;
-          
-          const canvasPos = worldToCanvas(pos.x, pos.z);
-          const distFromCenter = Math.sqrt(
-            Math.pow(canvasPos.x - centerX, 2) +
-            Math.pow(canvasPos.y - centerY, 2)
-          );
-          if (distFromCenter > radius) return;
-          
-          const video = videoMetadata[index - 1];
-          
-          ctx.fillStyle = '#aaaaaa';
-          ctx.beginPath();
-          ctx.arc(canvasPos.x, canvasPos.y, 2, 0, Math.PI * 2);
-          ctx.fill();
-          
-          if (video) {
-            const date = new Date(video.date_recorded);
-            const label = `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
-            ctx.fillStyle = '#777';
-            ctx.fillText(label, canvasPos.x + 4, canvasPos.y + 2);
-          }
-        });
+       videoPositions.forEach((pos, index) => {
+  if (index === 0) return;
+  
+  const canvasPos = worldToCanvas(pos.x, pos.z);
+  
+  const distFromCenter = Math.sqrt(
+    Math.pow(canvasPos.x - centerX, 2) +
+    Math.pow(canvasPos.y - centerY, 2)
+  );
+  if (distFromCenter > radius) return;
+  
+  // Draw dot only (no labels - minimal)
+  ctx.fillStyle = '#888888';
+  ctx.beginPath();
+  ctx.arc(canvasPos.x, canvasPos.y, 2, 0, Math.PI * 2);
+  ctx.fill();
+});
+
         
       ctx.fillStyle = '#ffff00';
 ctx.beginPath();
