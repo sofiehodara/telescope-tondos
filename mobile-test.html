@@ -304,12 +304,19 @@
             container.appendChild(videoEntity);
             
             const indexLink = document.createElement('a');
-            indexLink.href = '#';
-            indexLink.textContent = video.title || formatDate(video.date_recorded);
-            indexLink.onclick = function() {
-              teleportToVideo(index + 1);
-              return false;
-            };
+indexLink.href = '#';
+indexLink.textContent = video.title || formatDate(video.date_recorded);
+indexLink.onclick = function() {
+  // Remove active from all index links
+  document.querySelectorAll('#indexList a').forEach(a => a.classList.remove('active'));
+  // Add active to clicked link
+  indexLink.classList.add('active');
+  
+  teleportToVideo(index + 1);
+  return false;
+};
+indexList.appendChild(indexLink);
+
             indexList.appendChild(indexLink);
             
             if (videosLoaded === videosData.length) {
