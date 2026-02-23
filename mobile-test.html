@@ -490,6 +490,23 @@ mapUpdateInterval = setInterval(() => {
         ctx.font = '8px Arial';
         ctx.textAlign = 'left';
         
+        // Draw trail (fading yellow path)
+if (pathTrail.length > 1) {
+  for (let i = 1; i < pathTrail.length; i++) {
+    const prev = worldToCanvas(pathTrail[i-1].x, pathTrail[i-1].z);
+    const curr = worldToCanvas(pathTrail[i].x, pathTrail[i].z);
+    
+    const opacity = 1 - (pathTrail[i].age / 50);
+    ctx.strokeStyle = `rgba(255, 255, 0, ${opacity * 0.4})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(curr.x, curr.y);
+    ctx.stroke();
+  }
+}
+
+        
        videoPositions.forEach((pos, index) => {
   if (index === 0) return;
   
