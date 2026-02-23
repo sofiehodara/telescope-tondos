@@ -314,14 +314,18 @@
 indexLink.href = '#';
 indexLink.textContent = video.title || formatDate(video.date_recorded);
 indexLink.onclick = function() {
-  // Remove active from all index links
+  // Remove active from all video links in index
   document.querySelectorAll('#indexList a').forEach(a => a.classList.remove('active'));
   // Add active to clicked link
   indexLink.classList.add('active');
+  // Keep parent "index" link active
+  const parentIndexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+  if (parentIndexLink) parentIndexLink.classList.add('active');
   
   teleportToVideo(index + 1);
   return false;
 };
+
 
 
             indexList.appendChild(indexLink);
