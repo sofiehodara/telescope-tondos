@@ -2,8 +2,10 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Telescopies - 3D Video Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telescope Tondos, 2021</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       body {
@@ -22,83 +24,120 @@
         z-index: 100;
       }
       
-      #teleportLinks {
+      #videoTimestamp {
         position: fixed;
         top: 20px;
-        left: 20px;
-        max-height: 90vh;
-        overflow-y: auto;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        color: lightgrey;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 17px;
+        color: white;
         z-index: 10;
-        background: rgba(0, 0, 0, 0.5);
-        padding: 15px;
-        border-radius: 8px;
+        opacity: 0;
+        transition: opacity 0.3s;
       }
       
-      #teleportLinks h3 {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        color: white;
-        font-weight: normal;
+      #videoTimestamp.visible {
+        opacity: 1;
       }
       
-      #teleportLinks a {
+      #topNav {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 10;
+        display: none;
+      }
+      
+      #topNav a {
         display: block;
-        margin: 5px 0;
-        text-decoration: none;
-        color: skyblue;
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: underline;
+        margin: 6px 0;
         transition: color 0.2s;
+        cursor: pointer;
       }
       
-      #teleportLinks a:hover {
-        color: white;
+      #topNav a:hover {
+        color: rgba(255, 255, 255, 0.9);
       }
       
-      #teleportLinks a.active {
-        color: #ff5f15;
-        font-weight: bold;
+      #topNav a.active {
+        color: rgba(255, 255, 255, 0.9);
       }
       
-      #instructions {
+      #indexList {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        margin-top: 6px;
+        padding-right: 12px;
+        direction: ltr;
+      }
+      
+      #indexList.expanded {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      
+      #indexList a {
+        font-size: 11px;
+        margin: 3px 0;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      
+      #indexList a.active {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      #indexList::-webkit-scrollbar {
+        width: 3px;
+      }
+      
+      #indexList::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      
+      #mapModal {
+        display: none;
         position: fixed;
         bottom: 20px;
         right: 20px;
-        font-family: Arial, sans-serif;
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.6);
-        background: rgba(0, 0, 0, 0.5);
-        padding: 10px;
-        border-radius: 5px;
         z-index: 10;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        padding: 0;
+        overflow: hidden;
       }
       
-      #teleportLinks::-webkit-scrollbar {
-        width: 6px;
+      #mapCanvas {
+        display: block;
+        border-radius: 50%;
       }
       
-      #teleportLinks::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
+      #aboutModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 2000;
+        overflow-y: auto;
       }
       
-      #teleportLinks::-webkit-scrollbar-thumb {
-        background: rgba(135, 206, 235, 0.5);
-        border-radius: 3px;
+      .a-dialog, .a-enter-vr-button {
+        display: none !important;
       }
-      
-      #teleportLinks::-webkit-scrollbar-thumb:hover {
-        background: rgba(135, 206, 235, 0.8);
-      }
-
-
     </style>
   </head>
   <body>
     <div id="loading">Loading videos...</div>
     
-    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000;">
       <div style="text-align: center; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">
         <p style="font-size: 24px; margin-bottom: 10px; font-weight: 300;">Telescope Tondos, 2021</p>
         <p style="font-size: 18px; margin-bottom: 40px; font-weight: 300;">Web experience</p>
@@ -106,24 +145,28 @@
           click to enter
         </a>
       </div>
-      
     </div>
     
-    <div id="teleportLinks" style="display: none;">
-      <a href="#" onclick="openAbout(); return false;" style="display: block; margin-bottom: 10px; font-size: 12px; text-decoration: underline; font-weight: normal;">About</a>
-      <a href="#" onclick="teleportToVideo(0); setActiveLink(this); return false;">Origin</a>
+    <div id="videoTimestamp"></div>
+    
+    <div id="topNav">
+      <a href="#" onclick="goHome(); return false;">origin</a>
+      <a href="#" onclick="randomTeleport(); return false;">random</a>
+      <a href="#" onclick="openMap(); return false;">map</a>
+      <a href="#" onclick="toggleIndex(); return false;">index</a>
+      <div id="indexList"></div>
+      <a href="#" onclick="openAbout(); return false;">about</a>
     </div>
     
-    <div id="instructions">
-      WASD/Arrows to move • Mouse to look • Click videos in sidebar
+    <div id="mapModal">
+      <canvas id="mapCanvas"></canvas>
     </div>
-  
     
-    <div id="aboutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto;">
+    <div id="aboutModal">
       <div style="max-width: 700px; margin: 60px auto; padding: 40px; color: #cccccc; font-family: Georgia, 'Times New Roman', serif; line-height: 1.8;">
         <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 300;">Telescope Tondos, 2021</h2>
         <p style="font-size: 16px; margin-bottom: 20px;">
-          Telescope Tondos (2021) is an ongoing project that consists of a series of live images taken using my iPhone and a telescope from the window of an apartment in Brooklyn, NY, where I temporarily lived because of COVID. These moving vistas capture the ever-changing sky, urban street scenes, and views into the private residences of my neighbors. They are a response to dislocation and social distancing. Each composition frames a potential story about a community or place I am not interacting with. The moving imagery is otherworldly as the telescope flattens and flips the space. This body of work asks: in the time of COVID – where everything is mediated by screens – can digital voyeurism stand in for intimacy and community?
+          Telescope Tondos (2021) consists of a series of live images taken using my iPhone and a telescope from the window of an apartment in Brooklyn, NY, where I temporarily lived because of Covid. These moving vistas capture the ever-changing sky, urban street scenes, and views into the private residences of my neighbors. They are a response to dislocation and social distancing. Each composition frames a potential story about a community or place I am not interacting with. The moving imagery is otherworldly as the telescope flattens and flips the space. This body of work asks: in the time of Covid and beyond – where everything is mediated by screens – can digital voyeurism stand in for intimacy and community?
         </p>
         <p style="font-size: 16px; margin-bottom: 20px;">
           Over time this project has taken the form of an instagram feed, videos, posters, and this website archive.
@@ -141,12 +184,10 @@
       <a-sky color="black"></a-sky>
       
       <a-assets id="videoAssets"></a-assets>
-
       <a-entity id="videoContainer"></a-entity>
 
-      <a-entity id="rig" position="0 0 0">
-        <a-camera id="camera" position="0 0 0" look-controls wasd-controls>
-        </a-camera>
+      <a-entity id="rig" movement-controls="fly: false; speed: 0.15" position="0 0 0">
+        <a-camera id="camera" position="0 0 0" look-controls></a-camera>
       </a-entity>
     </a-scene>
 
@@ -161,16 +202,14 @@
         minDistance: 3,
         videoWidth: 1.5,
         videoHeight: 2,
-        proximityDistance: 1.5
+        proximityDistance: 1
       };
 
-      let supabaseClient = null;
-      let videos = [];
+      let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       let videoPositions = [{ x: 0, y: 0, z: 0 }];
-      
-      if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
+      let videoMetadata = [];
+      let mapUpdateInterval = null;
+      let pathTrail = [];
 
       function generateRandomPosition(existingPositions) {
         const maxAttempts = 100;
@@ -196,10 +235,7 @@
             }
           }
           
-          if (isValid) {
-            return position;
-          }
-          
+          if (isValid) return position;
           attempts++;
         }
         
@@ -209,24 +245,8 @@
           z: Math.random() * (SPACE_CONFIG.z.max - SPACE_CONFIG.z.min) + SPACE_CONFIG.z.min
         };
       }
-      
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const year = date.getFullYear().toString().slice(-2);
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        
-        return `${month}.${day}.${year} ${hours}:${minutes}`;
-      }
 
       async function fetchVideosFromSupabase() {
-        if (!supabaseClient) {
-          console.log('Supabase not configured, using fallback videos');
-          return null;
-        }
-        
         try {
           const { data, error } = await supabaseClient
             .from('videos')
@@ -234,10 +254,9 @@
             .order('date_recorded', { ascending: true });
           
           if (error) throw error;
-          
           return data;
         } catch (error) {
-          console.error('Error fetching videos:', error);
+          console.error('Error:', error);
           return null;
         }
       }
@@ -245,10 +264,11 @@
       function createVideoElements(videosData) {
         const assets = document.querySelector('#videoAssets');
         const container = document.querySelector('#videoContainer');
+        const indexList = document.querySelector('#indexList');
         const positions = [videoPositions[0]];
         
+        videoMetadata = videosData;
         let videosLoaded = 0;
-        const totalVideos = videosData.length;
         
         videosData.forEach((video, index) => {
           const videoAsset = document.createElement('video');
@@ -263,55 +283,49 @@
           const position = generateRandomPosition(positions);
           positions.push(position);
           
-          // Wait for video to have data before adding to scene
           videoAsset.addEventListener('loadedmetadata', () => {
-            console.log(`Video ${index} ready`);
             videosLoaded++;
+            document.querySelector('#loading').textContent = `Loading videos... ${videosLoaded}/${videosData.length}`;
             
-            // Update loading message
-            document.querySelector('#loading').textContent = `Loading videos... ${videosLoaded}/${totalVideos}`;
-            
-            // Now create the A-Frame entity
             const videoEntity = document.createElement('a-video');
             videoEntity.setAttribute('src', `#video${index}`);
             videoEntity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
             videoEntity.setAttribute('height', SPACE_CONFIG.videoHeight);
             videoEntity.setAttribute('width', SPACE_CONFIG.videoWidth);
             videoEntity.setAttribute('proximity-autoplay', 'true');
+            videoEntity.setAttribute('data-video-index', index);
             container.appendChild(videoEntity);
             
-            // Hide loading when all videos are ready
-            if (videosLoaded === totalVideos) {
+            const indexLink = document.createElement('a');
+            indexLink.href = '#';
+            indexLink.textContent = video.title || formatDate(video.date_recorded);
+            indexLink.onclick = function() {
+              document.querySelectorAll('#indexList a').forEach(a => a.classList.remove('active'));
+              indexLink.classList.add('active');
+              const parentIndexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+              if (parentIndexLink) parentIndexLink.classList.add('active');
+              
+              teleportToVideo(index + 1);
+              return false;
+            };
+            indexList.appendChild(indexLink);
+            
+            if (videosLoaded === videosData.length) {
               setTimeout(() => {
                 document.querySelector('#loading').style.display = 'none';
-                console.log('All videos loaded! Click "Enter" to start.');
               }, 500);
             }
           });
           
           assets.appendChild(videoAsset);
-          
-          const link = document.createElement('a');
-          link.href = '#';
-          link.textContent = video.title || formatDate(video.created_at);
-          link.onclick = function() {
-            teleportToVideo(index + 1);
-            setActiveLink(this);
-            return false;
-          };
-          document.querySelector('#teleportLinks').appendChild(link);
         });
         
         videoPositions = positions;
       }
 
-      function useFallbackVideos() {
-        const fallbackVideos = [
-          { video_url: 'https://cdn.glitch.global/f7bd5c1a-d3a7-4de0-a789-9253fdc13ea2/TT-sunset2.mp4?v=1731377052892', created_at: '2021-02-23T17:23:00', title: '2.23.21 17:23' },
-          { video_url: 'https://cdn.glitch.global/f7bd5c1a-d3a7-4de0-a789-9253fdc13ea2/TT-smoke.mp4?v=1731377067771', created_at: '2021-02-17T16:30:00', title: '2.17.21 16:30' }
-        ];
-        
-        createVideoElements(fallbackVideos);
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
       }
 
       function teleportToVideo(index) {
@@ -324,19 +338,190 @@
         rig.setAttribute('position', `${position.x} 0 ${position.z + 0.5}`);
         camera.setAttribute('position', { x: 0, y: 0, z: 0 });
         camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        
+        if (index > 0) showTimestamp(index - 1);
       }
       
-      function setActiveLink(link) {
-        const links = document.querySelectorAll('#teleportLinks a');
-        links.forEach((l) => l.classList.remove('active'));
-        link.classList.add('active');
+      function goHome() {
+        const rig = document.querySelector('#rig');
+        const camera = document.querySelector('#camera');
+        
+        rig.setAttribute('position', { x: 0, y: 0, z: 0 });
+        rig.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('position', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        
+        hideTimestamp();
+      }
+      
+      function randomTeleport() {
+        const randomIndex = Math.floor(Math.random() * videoMetadata.length) + 1;
+        teleportToVideo(randomIndex);
+      }
+      
+      function showTimestamp(videoIndex) {
+        const video = videoMetadata[videoIndex];
+        if (!video) return;
+        
+        const timestamp = document.querySelector('#videoTimestamp');
+        timestamp.textContent = formatDate(video.date_recorded);
+        timestamp.classList.add('visible');
+      }
+      
+      function hideTimestamp() {
+        document.querySelector('#videoTimestamp').classList.remove('visible');
+      }
+      
+      function toggleIndex() {
+        const indexList = document.querySelector('#indexList');
+        const indexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+        
+        indexList.classList.toggle('expanded');
+        
+        if (indexList.classList.contains('expanded')) {
+          indexLink.classList.add('active');
+        } else {
+          indexLink.classList.remove('active');
+        }
+      }
+
+      function updateTrail() {
+        const rig = document.querySelector('#rig');
+        if (!rig) return;
+        
+        const rigPos = rig.object3D.position;
+        pathTrail.push({ x: rigPos.x, z: rigPos.z, age: 0 });
+        
+        pathTrail = pathTrail.map(p => ({ ...p, age: p.age + 1 }))
+                             .filter(p => p.age < 50);
+      }
+
+      function openMap() {
+        const modal = document.getElementById('mapModal');
+        const canvas = document.getElementById('mapCanvas');
+        const mapLink = document.querySelector('#topNav a[onclick*="openMap"]');
+        
+        if (modal.style.display === 'block') {
+          closeMap();
+          if (mapLink) mapLink.classList.remove('active');
+        } else {
+          modal.style.display = 'block';
+          if (mapLink) mapLink.classList.add('active');
+          
+          canvas.width = 180;
+          canvas.height = 180;
+          
+          pathTrail = [];
+          drawMap(canvas);
+          mapUpdateInterval = setInterval(() => {
+            updateTrail();
+            drawMap(canvas);
+          }, 100);
+        }
+      }
+      
+      function closeMap() {
+        document.getElementById('mapModal').style.display = 'none';
+        if (mapUpdateInterval) {
+          clearInterval(mapUpdateInterval);
+          mapUpdateInterval = null;
+        }
+      }
+      
+      function drawMap(canvas) {
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = width / 2;
+
+        ctx.clearRect(0, 0, width, height);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.clip();
+        
+        const rig = document.querySelector('#rig');
+        if (!rig) return;
+        
+        const rigPos = rig.object3D.position;
+        const viewRadius = 9;
+        const scale = radius / viewRadius;
+        
+        function worldToCanvas(x, z) {
+          return {
+            x: centerX + (x - rigPos.x) * scale,
+            y: centerY - (z - rigPos.z) * scale
+          };
+        }
+        
+        // Draw trail
+        if (pathTrail.length > 1) {
+          for (let i = 1; i < pathTrail.length; i++) {
+            const prev = worldToCanvas(pathTrail[i-1].x, pathTrail[i-1].z);
+            const curr = worldToCanvas(pathTrail[i].x, pathTrail[i].z);
+            
+            const opacity = 1 - (pathTrail[i].age / 50);
+            ctx.strokeStyle = `rgba(255, 255, 0, ${opacity * 0.4})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            ctx.lineTo(curr.x, curr.y);
+            ctx.stroke();
+          }
+        }
+        
+        // Draw video dots (minimal - no labels)
+        videoPositions.forEach((pos, index) => {
+          if (index === 0) return;
+          
+          const canvasPos = worldToCanvas(pos.x, pos.z);
+          
+          const distFromCenter = Math.sqrt(
+            Math.pow(canvasPos.x - centerX, 2) +
+            Math.pow(canvasPos.y - centerY, 2)
+          );
+          if (distFromCenter > radius) return;
+          
+          ctx.fillStyle = '#888888';
+          ctx.beginPath();
+          ctx.arc(canvasPos.x, canvasPos.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        
+        // Draw current position
+        ctx.fillStyle = '#4CC9F0';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+        canvas.onclick = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+          
+          videoPositions.forEach((pos, index) => {
+            if (index === 0) return;
+            
+            const canvasPos = worldToCanvas(pos.x, pos.z);
+            const distance = Math.sqrt(
+              Math.pow(clickX - canvasPos.x, 2) +
+              Math.pow(clickY - canvasPos.y, 2)
+            );
+            
+            if (distance < 8) {
+              closeMap();
+              teleportToVideo(index);
+            }
+          });
+        };
       }
       
       function openAbout() {
-        document.getElementById('aboutModal').style.display = 'block';
-      }
-      
-      function openAboutFromEnter() {
         document.getElementById('aboutModal').style.display = 'block';
       }
       
@@ -346,33 +531,45 @@
 
       AFRAME.registerComponent('proximity-autoplay', {
         schema: { 
-          distance: { type: 'number', default: 1.5 } 
+          distance: { type: 'number', default: 1 },
+          stickyDistance: { type: 'number', default: 0.7 }
         },
         
         init: function () {
           this.camera = document.querySelector('#camera');
+          this.rig = document.querySelector('#rig');
           this.videoEl = document.querySelector(this.el.getAttribute('src'));
-          console.log('Proximity component init for:', this.el.getAttribute('src'), 'videoEl:', this.videoEl);
+          this.videoIndex = parseInt(this.el.getAttribute('data-video-index'));
+          this.originalSpeed = 0.15;
         },
         
         tick: function () {
-          if (!this.camera || !this.videoEl) return;
+          if (!this.camera || !this.videoEl || !this.rig) return;
           
-          // Get camera's world position (actual position in scene after movement)
           const cameraWorldPos = new THREE.Vector3();
           this.camera.object3D.getWorldPosition(cameraWorldPos);
           
           const videoPos = this.el.object3D.position;
           const distance = cameraWorldPos.distanceTo(videoPos);
           
+          // Soft sticky lock - slow movement when very close
+          const movementControls = this.rig.components['movement-controls'];
+          if (distance < this.schema.stickyDistance.default) {
+            if (movementControls) {
+              movementControls.data.speed = this.originalSpeed * 0.15;
+            }
+      
+          } else {
+            if (movementControls) {
+              movementControls.data.speed = this.originalSpeed;
+            }
+          }
+          
           if (distance < this.data.distance) {
-            console.log('CLOSE to video! Distance:', distance.toFixed(2), 'Paused?', this.videoEl.paused);
             if (this.videoEl.paused) {
               this.videoEl.play().then(() => {
-                console.log('✓ Playing!');
-              }).catch(e => {
-                console.log('✗ Play failed:', e.message);
-              });
+                showTimestamp(this.videoIndex);
+              }).catch(e => console.log('Play failed:', e));
             }
             if (this.videoEl.muted) {
               this.videoEl.muted = false;
@@ -380,50 +577,32 @@
           } else {
             if (!this.videoEl.paused) {
               this.videoEl.pause();
-              console.log('Paused at distance:', distance.toFixed(2));
-            }
-            if (!this.videoEl.muted) {
               this.videoEl.muted = true;
+              hideTimestamp();
             }
           }
         }
       });
 
       async function init() {
-        document.querySelector('#loading').textContent = 'Loading videos...';
-        
         const supabaseVideos = await fetchVideosFromSupabase();
         
         if (supabaseVideos && supabaseVideos.length > 0) {
-          console.log(`Loaded ${supabaseVideos.length} videos from Supabase`);
+          console.log(`Loaded ${supabaseVideos.length} videos`);
           createVideoElements(supabaseVideos);
-        } else {
-          console.log('Using fallback videos');
-          useFallbackVideos();
-        }
-        
-        const firstLink = document.querySelector('#teleportLinks a');
-        if (firstLink) {
-          firstLink.classList.add('active');
         }
       }
       
-      // Enter button handler
       document.addEventListener('DOMContentLoaded', () => {
         const enterButton = document.getElementById('enterButton');
         const enterScreen = document.getElementById('enterScreen');
-        const teleportLinks = document.getElementById('teleportLinks');
+        const topNav = document.getElementById('topNav');
         
         enterButton.addEventListener('click', (e) => {
           e.preventDefault();
-          
-          // Hide enter screen
           enterScreen.style.display = 'none';
+          topNav.style.display = 'block';
           
-          // Show teleport links
-          teleportLinks.style.display = 'block';
-          
-          // Try to play all videos once (muted) to enable autoplay
           const videos = document.querySelectorAll('video');
           videos.forEach(video => {
             video.play().then(() => {
@@ -431,8 +610,6 @@
               video.currentTime = 0;
             }).catch(e => console.log('Preplay failed:', e));
           });
-          
-          console.log('Entered gallery');
         });
       });
       
@@ -440,21 +617,15 @@
         document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => {
             const scene = document.querySelector('a-scene');
-            if (scene.hasLoaded) {
-              init();
-            } else {
-              scene.addEventListener('loaded', init);
-            }
+            if (scene.hasLoaded) init();
+            else scene.addEventListener('loaded', init);
           }, 100);
         });
       } else {
         document.addEventListener('DOMContentLoaded', () => {
           const scene = document.querySelector('a-scene');
-          if (scene.hasLoaded) {
-            init();
-          } else {
-            scene.addEventListener('loaded', init);
-          }
+          if (scene.hasLoaded) init();
+          else scene.addEventListener('loaded', init);
         });
       }
     </script>
