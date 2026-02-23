@@ -63,7 +63,7 @@
       #topNav a:hover {
         color: rgba(255, 255, 255, 0.9);
       }
-      #topNav a.active {
+      #topNav a:active {
   font-weight: bold;
 }
       
@@ -82,10 +82,15 @@
       }
       
       #indexList a {
-        font-size: 10px;
+        font-size: 11px;
         margin: 3px 0;
         color: rgba(255, 255, 255, 0.6);
       }
+      
+      #indexList a.active {
+  color: rgba(255, 255, 255, 0.9);
+}
+
       
       #indexList::-webkit-scrollbar {
         width: 3px;
