@@ -558,14 +558,7 @@
             if (movementControls) {
               movementControls.data.speed = this.originalSpeed * 0.15;
             }
-            
-            // Gentle pull toward video
-            const pullStrength = 0.002;
-            const direction = new THREE.Vector3();
-            direction.subVectors(videoPos, cameraWorldPos).normalize().multiplyScalar(pullStrength);
-            
-            this.rig.object3D.position.x += direction.x;
-            this.rig.object3D.position.z += direction.z;
+      
           } else {
             if (movementControls) {
               movementControls.data.speed = this.originalSpeed;
