@@ -591,14 +591,49 @@ ctx.fill();
           const distance = cameraWorldPos.distanceTo(videoPos);
           
           if (distance < this.data.distance) {
-            if (this.videoEl.paused) {
-              this.videoEl.play().then(() => {
-                showTimestamp(this.videoIndex);
-              }).catch(e => console.log('Play failed:', e));
-            }
-            if (this.videoEl.muted) {
-              this.videoEl.muted = false;
-            }
+  if (this.videoEl.paused) {
+    this.videoEl.play().then(() => {
+      showTimestamp(this.videoIndex);
+    }).catch(e => console.log('Play failed:', e));
+  }
+  
+  // Setup Web Audio API for spatial audio (only once)
+  if (!this.audioContext) {
+    try {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.source = this.audioContext.createMediaElementSource(this.videoEl);
+      this.panner = this.audioContext.createStereoPanner();
+      this.gainNode = this.audioContext.createGain();
+      
+      this.source.connect(this.panner);
+      this.panner.connect(this.gainNode);
+      this.gainNode.connect(this.audioContext.destination);
+    } catch(e) {
+      console.log('Web Audio not available:', e);
+    }
+  }
+  
+  if (this.audioContext) {
+    // Audio fade: louder when closer
+    const fadeStart = this.data.distance; // 1.0
+    const fadeEnd = 0.3; // Full volume at 0.3 units
+    const fadeFactor = Math.max(0, Math.min(1, (distance - fadeEnd) / (fadeStart - fadeEnd)));
+    
+    // Stereo panning: left ear (-1) to right ear (+1)
+    const relativeX = videoPos.x - cameraWorldPos.x;
+    const relativeZ = videoPos.z - cameraWorldPos.z;
+    const angle = Math.atan2(relativeX, -relativeZ);
+    const panValue = Math.max(-1, Math.min(1, Math.sin(angle)));
+    
+    this.panner.pan.value = panValue;
+    this.gainNode.gain.value = 1 - fadeFactor;
+  }
+  
+  if (this.videoEl.muted) {
+    this.videoEl.muted = false;
+  }
+}
+
           } else {
             if (!this.videoEl.paused) {
               this.videoEl.pause();
