@@ -137,7 +137,7 @@
   <body>
     <div id="loading">Loading videos...</div>
     
-    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000;">
+    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 100000;">
       <div style="text-align: center; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">
         <p style="font-size: 24px; margin-bottom: 10px; font-weight: 300;">Telescope Tondos, 2021</p>
         <p style="font-size: 18px; margin-bottom: 40px; font-weight: 300;">Web experience</p>
@@ -566,14 +566,19 @@
         }
       });
 
-      async function init() {
-        const supabaseVideos = await fetchVideosFromSupabase();
-        
-        if (supabaseVideos && supabaseVideos.length > 0) {
-          console.log(`Loaded ${supabaseVideos.length} videos`);
-          createVideoElements(supabaseVideos);
-        }
-      }
+async function init() {
+  const supabaseVideos = await fetchVideosFromSupabase();
+  
+  if (supabaseVideos && supabaseVideos.length > 0) {
+    console.log(`Loaded ${supabaseVideos.length} videos`);
+    createVideoElements(supabaseVideos);
+  }
+  
+  // Show enter screen after scene loads
+  setTimeout(() => {
+    document.getElementById('enterScreen').style.display = 'flex';
+  }, 1000);
+}
       
       document.addEventListener('DOMContentLoaded', () => {
         const enterButton = document.getElementById('enterButton');
