@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telescope Tondos, 2021</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='black' stroke='%234CC9F0' stroke-width='2'/></svg>">
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      
+      #loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: Arial, sans-serif;
+        color: white;
+        font-size: 18px;
+        z-index: 100;
+      }
+      
+      #videoTimestamp {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 17px;
+        color: white;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      #videoTimestamp.visible {
+        opacity: 1;
+      }
+      
+      #topNav {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 10;
+        display: none;
+      }
+      
+      #topNav a {
+        display: block;
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: underline;
+        margin: 6px 0;
+        transition: color 0.2s;
+        cursor: pointer;
+      }
+      
+      #topNav a:hover {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      #topNav a.active {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      #indexList {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        margin-top: 6px;
+        padding-right: 12px;
+        direction: ltr;
+      }
+      
+      #indexList.expanded {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      
+      #indexList a {
+        font-size: 11px;
+        margin: 3px 0;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: underline;
+      }
+      
+      #indexList a.active {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      #indexList::-webkit-scrollbar {
+        width: 3px;
+      }
+      
+      #indexList::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      
+      #mapModal {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        padding: 0;
+        overflow: hidden;
+      }
+      
+      #mapCanvas {
+        display: block;
+        border-radius: 50%;
+      }
+      
+      #aboutModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 2000;
+        overflow-y: auto;
+      }
+      
+
+    </style>
+  </head>
+  <body>
+    <div id="loading">Loading videos...</div>
+    
+    <div id="enterScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; z-index: 100000;">
+      <div style="text-align: center; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">
+        <p style="font-size: 24px; margin-bottom: 10px; font-weight: 300;">Telescope Tondos, 2021</p>
+        <p style="font-size: 18px; margin-bottom: 40px; font-weight: 300;">Web experience</p>
+        <button id="enterButton" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #cccccc; text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0;">
+          click to enter
+        </button>
+      </div>
+    </div>
+    
+    <div id="videoTimestamp"></div>
+    
+    <div id="topNav">
+      <a href="#" onclick="goHome(); return false;">origin</a>
+      <a href="#" onclick="randomTeleport(); return false;">random</a>
+      <a href="#" onclick="openMap(); return false;">map</a>
+      <a href="#" onclick="toggleIndex(); return false;">index</a>
+      <div id="indexList"></div>
+      <a href="#" onclick="openAbout(); return false;">about</a>
+    </div>
+    
+    <div id="mapModal">
+      <canvas id="mapCanvas"></canvas>
+    </div>
+    
+    <div id="aboutModal">
+      <div style="max-width: 700px; margin: 60px auto; padding: 40px; color: #cccccc; font-family: Georgia, 'Times New Roman', serif; line-height: 1.8;">
+        <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 300;">Telescope Tondos, 2021</h2>
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Telescope Tondos (2021) consists of a series of live images taken using my iPhone and a telescope from the window of an apartment in Brooklyn, NY, where I temporarily lived because of Covid. These moving vistas capture the ever-changing sky, urban street scenes, and views into the private residences of my neighbors. They are a response to dislocation and social distancing. Each composition frames a potential story about a community or place I am not interacting with. The moving imagery is otherworldly as the telescope flattens and flips the space. This body of work asks: in the time of Covid and beyond – where everything is mediated by screens – can digital voyeurism stand in for intimacy and community?
+        </p>
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Over time this project has taken the form of an instagram feed, videos, posters, and this website archive.
+        </p>
+        <p style="font-size: 16px; margin-bottom: 30px;">
+          <a href="https://sofie.space/telescope-tondos" target="_blank" style="color: #cccccc; text-decoration: underline;">https://sofie.space/telescope-tondos</a>
+        </p>
+        <a href="#" onclick="closeAbout(); return false;" style="font-family: Arial, sans-serif; font-size: 14px; color: #cccccc; text-decoration: underline; cursor: pointer;">
+          Close
+        </a>
+      </div>
+    </div>
+
+    <a-scene vr-mode-ui="enabled: false">
+      <a-sky color="black"></a-sky>
+      
+      <a-assets id="videoAssets"></a-assets>
+      <a-entity id="videoContainer"></a-entity>
+
+      <a-entity id="rig" movement-controls="fly: false; speed: 0.15" position="0 0 0">
+        <a-camera id="camera" position="0 0 0" look-controls></a-camera>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const SUPABASE_URL = 'https://pqkqsgzbntuigrrcwvdb.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxa3FzZ3pibnR1aWdycmN3dmRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzY0MTUsImV4cCI6MjA4NzAxMjQxNX0.ipcvc2ek_EWd7UPUioix9tWYzEivSobWZYi1yjGfFJ4';
+      
+      const SPACE_CONFIG = {
+        x: { min: -15, max: 15 },
+        y: 0,
+        z: { min: -25, max: -2 },
+        minDistance: 3,
+        videoWidth: 1.5,
+        videoHeight: 2,
+        proximityDistance: 1
+      };
+
+      let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      let videoPositions = [{ x: 0, y: 0, z: 0 }];
+      let videoMetadata = [];
+      let mapUpdateInterval = null;
+      let pathTrail = [];
+
+      function generateRandomPosition(existingPositions) {
+        const maxAttempts = 100;
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+          const position = {
+            x: Math.random() * (SPACE_CONFIG.x.max - SPACE_CONFIG.x.min) + SPACE_CONFIG.x.min,
+            y: SPACE_CONFIG.y,
+            z: Math.random() * (SPACE_CONFIG.z.max - SPACE_CONFIG.z.min) + SPACE_CONFIG.z.min
+          };
+          
+          let isValid = true;
+          for (const existing of existingPositions) {
+            const distance = Math.sqrt(
+              Math.pow(position.x - existing.x, 2) +
+              Math.pow(position.z - existing.z, 2)
+            );
+            
+            if (distance < SPACE_CONFIG.minDistance) {
+              isValid = false;
+              break;
+            }
+          }
+          
+          if (isValid) return position;
+          attempts++;
+        }
+        
+        return {
+          x: Math.random() * (SPACE_CONFIG.x.max - SPACE_CONFIG.x.min) + SPACE_CONFIG.x.min,
+          y: SPACE_CONFIG.y,
+          z: Math.random() * (SPACE_CONFIG.z.max - SPACE_CONFIG.z.min) + SPACE_CONFIG.z.min
+        };
+      }
+
+      async function fetchVideosFromSupabase() {
+        try {
+          const { data, error } = await supabaseClient
+            .from('videos')
+            .select('*')
+            .order('date_recorded', { ascending: true });
+          
+          if (error) throw error;
+          return data;
+        } catch (error) {
+          console.error('Error:', error);
+          return null;
+        }
+      }
+
+      function createVideoElements(videosData) {
+        const assets = document.querySelector('#videoAssets');
+        const container = document.querySelector('#videoContainer');
+        const indexList = document.querySelector('#indexList');
+        const positions = [videoPositions[0]];
+        
+        videoMetadata = videosData;
+        let videosLoaded = 0;
+        
+        videosData.forEach((video, index) => {
+          const videoAsset = document.createElement('video');
+          videoAsset.setAttribute('id', `video${index}`);
+          videoAsset.setAttribute('src', video.video_url);
+          videoAsset.setAttribute('loop', 'true');
+          videoAsset.setAttribute('muted', 'true');
+          videoAsset.setAttribute('playsinline', '');
+          videoAsset.setAttribute('crossorigin', 'anonymous');
+          videoAsset.setAttribute('preload', 'metadata');
+          
+          const position = generateRandomPosition(positions);
+          positions.push(position);
+          
+          videoAsset.addEventListener('loadedmetadata', () => {
+            videosLoaded++;
+            document.querySelector('#loading').textContent = `Loading videos... ${videosLoaded}/${videosData.length}`;
+            
+            const videoEntity = document.createElement('a-video');
+            videoEntity.setAttribute('src', `#video${index}`);
+            videoEntity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+            videoEntity.setAttribute('height', SPACE_CONFIG.videoHeight);
+            videoEntity.setAttribute('width', SPACE_CONFIG.videoWidth);
+            videoEntity.setAttribute('proximity-autoplay', 'true');
+            videoEntity.setAttribute('data-video-index', index);
+            container.appendChild(videoEntity);
+            
+            const indexLink = document.createElement('a');
+            indexLink.href = '#';
+            indexLink.textContent = video.title || formatDate(video.date_recorded);
+            indexLink.onclick = function() {
+              document.querySelectorAll('#indexList a').forEach(a => a.classList.remove('active'));
+              indexLink.classList.add('active');
+              const parentIndexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+              if (parentIndexLink) parentIndexLink.classList.add('active');
+              
+              teleportToVideo(index + 1);
+              return false;
+            };
+            indexList.appendChild(indexLink);
+            
+            if (videosLoaded === videosData.length) {
+              setTimeout(() => {
+                document.querySelector('#loading').style.display = 'none';
+              }, 500);
+            }
+          });
+          
+          assets.appendChild(videoAsset);
+        });
+        
+        videoPositions = positions;
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+      }
+
+      function teleportToVideo(index) {
+        const rig = document.querySelector('#rig');
+        const camera = document.querySelector('#camera');
+        const position = videoPositions[index];
+        
+        if (!position) return;
+        
+        rig.setAttribute('position', `${position.x} 0 ${position.z + 0.5}`);
+        camera.setAttribute('position', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        
+        if (index > 0) showTimestamp(index - 1);
+      }
+      
+      function goHome() {
+        const rig = document.querySelector('#rig');
+        const camera = document.querySelector('#camera');
+        
+        rig.setAttribute('position', { x: 0, y: 0, z: 0 });
+        rig.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('position', { x: 0, y: 0, z: 0 });
+        camera.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+        
+        hideTimestamp();
+      }
+      
+      function randomTeleport() {
+        const randomIndex = Math.floor(Math.random() * videoMetadata.length) + 1;
+        teleportToVideo(randomIndex);
+      }
+      
+      function showTimestamp(videoIndex) {
+        const video = videoMetadata[videoIndex];
+        if (!video) return;
+        
+        const timestamp = document.querySelector('#videoTimestamp');
+        timestamp.textContent = formatDate(video.date_recorded);
+        timestamp.classList.add('visible');
+      }
+      
+      function hideTimestamp() {
+        document.querySelector('#videoTimestamp').classList.remove('visible');
+      }
+      
+      function toggleIndex() {
+        const indexList = document.querySelector('#indexList');
+        const indexLink = document.querySelector('#topNav a[onclick*="toggleIndex"]');
+        
+        indexList.classList.toggle('expanded');
+        
+        if (indexList.classList.contains('expanded')) {
+          indexLink.classList.add('active');
+        } else {
+          indexLink.classList.remove('active');
+        }
+      }
+
+      function updateTrail() {
+        const rig = document.querySelector('#rig');
+        if (!rig) return;
+        
+        const rigPos = rig.object3D.position;
+        pathTrail.push({ x: rigPos.x, z: rigPos.z, age: 0 });
+        
+        pathTrail = pathTrail.map(p => ({ ...p, age: p.age + 1 }))
+                             .filter(p => p.age < 50);
+      }
+
+      function openMap() {
+        const modal = document.getElementById('mapModal');
+        const canvas = document.getElementById('mapCanvas');
+        const mapLink = document.querySelector('#topNav a[onclick*="openMap"]');
+        
+        if (modal.style.display === 'block') {
+          closeMap();
+          if (mapLink) mapLink.classList.remove('active');
+        } else {
+          modal.style.display = 'block';
+          if (mapLink) mapLink.classList.add('active');
+          
+          canvas.width = 180;
+          canvas.height = 180;
+          
+          pathTrail = [];
+          drawMap(canvas);
+          mapUpdateInterval = setInterval(() => {
+            updateTrail();
+            drawMap(canvas);
+          }, 100);
+        }
+      }
+      
+      function closeMap() {
+        document.getElementById('mapModal').style.display = 'none';
+        if (mapUpdateInterval) {
+          clearInterval(mapUpdateInterval);
+          mapUpdateInterval = null;
+        }
+      }
+      
+      function drawMap(canvas) {
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = width / 2;
+
+        ctx.clearRect(0, 0, width, height);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.clip();
+        
+        const rig = document.querySelector('#rig');
+        if (!rig) return;
+        
+        const rigPos = rig.object3D.position;
+        const viewRadius = 9;
+        const scale = radius / viewRadius;
+        
+        function worldToCanvas(x, z) {
+          return {
+            x: centerX + (x - rigPos.x) * scale,
+            y: centerY - (z - rigPos.z) * scale
+          };
+        }
+        
+        // Draw trail
+        if (pathTrail.length > 1) {
+          for (let i = 1; i < pathTrail.length; i++) {
+            const prev = worldToCanvas(pathTrail[i-1].x, pathTrail[i-1].z);
+            const curr = worldToCanvas(pathTrail[i].x, pathTrail[i].z);
+            
+            const opacity = 1 - (pathTrail[i].age / 50);
+            ctx.strokeStyle = `rgba(255, 255, 0, ${opacity * 0.4})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            ctx.lineTo(curr.x, curr.y);
+            ctx.stroke();
+          }
+        }
+        
+        // Draw video dots (minimal - no labels)
+        videoPositions.forEach((pos, index) => {
+          if (index === 0) return;
+          
+          const canvasPos = worldToCanvas(pos.x, pos.z);
+          
+          const distFromCenter = Math.sqrt(
+            Math.pow(canvasPos.x - centerX, 2) +
+            Math.pow(canvasPos.y - centerY, 2)
+          );
+          if (distFromCenter > radius) return;
+          
+          ctx.fillStyle = '#cccccc';
+          ctx.beginPath();
+          ctx.arc(canvasPos.x, canvasPos.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        
+        // Draw current position (bright cyan)
+        ctx.fillStyle = '#4CC9F0';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+        canvas.onclick = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+          
+          videoPositions.forEach((pos, index) => {
+            if (index === 0) return;
+            
+            const canvasPos = worldToCanvas(pos.x, pos.z);
+            const distance = Math.sqrt(
+              Math.pow(clickX - canvasPos.x, 2) +
+              Math.pow(clickY - canvasPos.y, 2)
+            );
+            
+            if (distance < 8) {
+              closeMap();
+              teleportToVideo(index);
+            }
+          });
+        };
+      }
+      
+      function openAbout() {
+        document.getElementById('aboutModal').style.display = 'block';
+      }
+      
+      function closeAbout() {
+        document.getElementById('aboutModal').style.display = 'none';
+      }
+
+      AFRAME.registerComponent('proximity-autoplay', {
+        schema: { distance: { type: 'number', default: 1 } },
+        
+        init: function () {
+          this.camera = document.querySelector('#camera');
+          this.videoEl = document.querySelector(this.el.getAttribute('src'));
+          this.videoIndex = parseInt(this.el.getAttribute('data-video-index'));
+        },
+        
+        tick: function () {
+          if (!this.camera || !this.videoEl) return;
+          
+          const cameraWorldPos = new THREE.Vector3();
+          this.camera.object3D.getWorldPosition(cameraWorldPos);
+          
+          const videoPos = this.el.object3D.position;
+          const distance = cameraWorldPos.distanceTo(videoPos);
+          
+          if (distance < this.data.distance) {
+            if (this.videoEl.paused) {
+              this.videoEl.play().then(() => {
+                showTimestamp(this.videoIndex);
+              }).catch(e => console.log('Play failed:', e));
+            }
+            if (this.videoEl.muted) {
+              this.videoEl.muted = false;
+            }
+          } else {
+            if (!this.videoEl.paused) {
+              this.videoEl.pause();
+              this.videoEl.muted = true;
+              hideTimestamp();
+            }
+          }
+        }
+      });
+
+async function init() {
+  const supabaseVideos = await fetchVideosFromSupabase();
+  
+  if (supabaseVideos && supabaseVideos.length > 0) {
+    console.log(`Loaded ${supabaseVideos.length} videos`);
+    createVideoElements(supabaseVideos);
+  }
+  
+  // Show enter screen after scene loads
+  setTimeout(() => {
+    document.getElementById('enterScreen').style.display = 'flex';
+  }, 1000);
+}
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        const enterButton = document.getElementById('enterButton');
+        const enterScreen = document.getElementById('enterScreen');
+        const topNav = document.getElementById('topNav');
+        
+        enterButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          enterScreen.style.display = 'none';
+          topNav.style.display = 'block';
+          
+          const videos = document.querySelectorAll('video');
+          videos.forEach(video => {
+            video.play().then(() => {
+              video.pause();
+              video.currentTime = 0;
+            }).catch(e => console.log('Preplay failed:', e));
+          });
+        });
+      });
+      
+      if (typeof AFRAME === 'undefined') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            const scene = document.querySelector('a-scene');
+            if (scene.hasLoaded) init();
+            else scene.addEventListener('loaded', init);
+          }, 100);
+        });
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          const scene = document.querySelector('a-scene');
+          if (scene.hasLoaded) init();
+          else scene.addEventListener('loaded', init);
+        });
+      }
+    </script>
+  </body>
+</html>
