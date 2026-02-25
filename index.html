@@ -296,6 +296,23 @@
           indexLink.classList.remove('active');
         }
       }
+      function makeVideosClickable() {
+  const videoEntities = document.querySelectorAll('[proximity-autoplay]');
+  
+  videoEntities.forEach((entity) => {
+    entity.addEventListener('click', () => {
+      const videoIndex = parseInt(entity.getAttribute('data-video-index'));
+      if (!isNaN(videoIndex)) {
+        teleportToVideo(videoIndex + 1);
+      }
+    });
+    
+    // Add cursor style for clickable videos
+    entity.setAttribute('material', 'opacity: 1.0');
+  });
+  
+  console.log('Made', videoEntities.length, 'videos clickable');
+}
       
       function openAbout() {
         document.getElementById('aboutModal').style.display = 'block';
