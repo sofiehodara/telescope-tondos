@@ -87,12 +87,13 @@ A series of Live Photos taken using my iPhone and a telescope during Covid lock 
     
     <div id="videoTimestamp"></div>
     
-    <div id="topNav">
-      <a href="#" onclick="goHome(); return false;">origin</a>
-      <a href="#" onclick="toggleIndex(); return false;">index</a>
-      <div id="indexList"></div>
-      <a href="#" onclick="openAbout(); return false;">about</a>
-    </div>
+   <div id="topNav">
+  <a href="#" onclick="goHome(); return false;">origin</a>
+  <a href="#" onclick="randomTeleport(); return false;">random</a>
+  <a href="#" onclick="toggleIndex(); return false;">index</a>
+  <div id="indexList"></div>
+  <a href="#" onclick="openAbout(); return false;">about</a>
+</div>
     
     <div id="aboutModal">
 <div style="max-width: 700px; margin: 60px auto; padding: 40px 40px 200px 40px; color: #cccccc; font-family: Georgia, 'Times New Roman', serif; line-height: 1.8;">        <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 300;">Telescope Tondos, 2021</h2>
@@ -207,7 +208,6 @@ A series of Live Photos taken using my iPhone and a telescope during Covid lock 
             videoEntity.setAttribute('width', SPACE_CONFIG.videoWidth);
             videoEntity.setAttribute('proximity-autoplay', 'true');
             videoEntity.setAttribute('data-video-index', index);
-            videoEntity.setAttribute('class', 'clickable');
             container.appendChild(videoEntity);
             
             const indexLink = document.createElement('a');
@@ -224,10 +224,9 @@ A series of Live Photos taken using my iPhone and a telescope during Covid lock 
             };
             indexList.appendChild(indexLink);
             
-        if (videosLoaded === videosData.length) {
+if (videosLoaded === videosData.length) {
   setTimeout(() => {
     document.querySelector('#loading').style.display = 'none';
-    makeVideosClickable();
   }, 500);
 }
           });
@@ -268,6 +267,11 @@ A series of Live Photos taken using my iPhone and a telescope during Covid lock 
         
         hideTimestamp();
       }
+
+      function randomTeleport() {
+  const randomIndex = Math.floor(Math.random() * videoMetadata.length) + 1;
+  teleportToVideo(randomIndex);
+}
       
       function showTimestamp(videoIndex) {
         const video = videoMetadata[videoIndex];
@@ -294,23 +298,7 @@ A series of Live Photos taken using my iPhone and a telescope during Covid lock 
           indexLink.classList.remove('active');
         }
       }
-      function makeVideosClickable() {
-  const videoEntities = document.querySelectorAll('[proximity-autoplay]');
-  
-  videoEntities.forEach((entity) => {
-    entity.addEventListener('click', () => {
-      const videoIndex = parseInt(entity.getAttribute('data-video-index'));
-      if (!isNaN(videoIndex)) {
-        teleportToVideo(videoIndex + 1);
-      }
-    });
-    
-    // Add cursor style for clickable videos
-    entity.setAttribute('material', 'opacity: 1.0');
-  });
-  
-  console.log('Made', videoEntities.length, 'videos clickable');
-}
+
       
       function openAbout() {
         document.getElementById('aboutModal').style.display = 'block';
