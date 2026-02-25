@@ -226,11 +226,12 @@
             };
             indexList.appendChild(indexLink);
             
-            if (videosLoaded === videosData.length) {
-              setTimeout(() => {
-                document.querySelector('#loading').style.display = 'none';
-              }, 500);
-            }
+        if (videosLoaded === videosData.length) {
+  setTimeout(() => {
+    document.querySelector('#loading').style.display = 'none';
+    makeVideosClickable();
+  }, 500);
+}
           });
           
           assets.appendChild(videoAsset);
